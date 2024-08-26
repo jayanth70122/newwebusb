@@ -71,8 +71,12 @@
 
         document.getElementById('connectBtn').addEventListener('click', async () => {
             try {
-                // Request a port and open a connection
-                port = await navigator.serial.requestPort();
+                // Request a port and filter to show only micro:bit devices
+                port = await navigator.serial.requestPort({
+                    filters: [
+                        { usbVendorId: 0x0D28, usbProductId: 0x0204 }
+                    ]
+                });
                 await port.open({ baudRate: 115200 });
                 document.getElementById('status').innerText = "Status: Connected to Micro:bit";
 
