@@ -70,34 +70,35 @@
         let writer;
 
         document.getElementById('connectBtn').addEventListener('click', async () => {
-            try {
-                console.log("Requesting port...");
-                // Request a port and filter to show only micro:bit devices
-                port = await navigator.serial.requestPort({
-                    filters: [
-                        { usbVendorId: 0x0D28, usbProductId: 0x0204 }
-                    ]
-                });
-                console.log("Port selected:", port);
-
-                await port.open({ baudRate: 115200 });
-                document.getElementById('status').innerText = "Status: Connected to Micro:bit";
-
-                console.log("Port opened successfully");
-
-                // Create a writer to send data to the micro:bit
-                const encoder = new TextEncoderStream();
-                encoder.readable.pipeTo(port.writable);
-                writer = encoder.writable.getWriter();
-
-                // Enable the file input and upload button once connected
-                document.getElementById('hexFile').disabled = false;
-                document.getElementById('uploadBtn').disabled = false;
-            } catch (error) {
-                console.error('There was an error connecting to the micro:bit:', error);
-                document.getElementById('status').innerText = "Status: Connection failed";
-            }
+    try {
+        console.log("Requesting port...");
+        // Request a port and filter to show only micro:bit devices
+        port = await navigator.serial.requestPort({
+            filters: [
+                { usbVendorId: 0x0D28, usbProductId: 0x0204 }
+            ]
         });
+        console.log("Port selected:", port);
+
+        await port.open({ baudRate: 115200 });  // You can also try with different baud rates.
+        document.getElementById('status').innerText = "Status: Connected to Micro:bit";
+
+        console.log("Port opened successfully");
+
+        // Create a writer to send data to the micro:bit
+        const encoder = new TextEncoderStream();
+        encoder.readable.pipeTo(port.writable);
+        writer = encoder.writable.getWriter();
+
+        // Enable the file input and upload button once connected
+        document.getElementById('hexFile').disabled = false;
+        document.getElementById('uploadBtn').disabled = false;
+    } catch (error) {
+        console.error('There was an error connecting to the micro:bit:', error);
+        document.getElementById('status').innerText = `Status: Connection failed - ${error.message}`;
+    }
+});
+
 
         document.getElementById('uploadBtn').addEventListener('click', async () => {
             const fileInput = document.getElementById('hexFile');
