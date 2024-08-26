@@ -4,66 +4,117 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Micro:bit WebSerial Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h1>Micro:bit WebSerial Interface</h1>
-    <button id="connectBtn">Connect to Micro:bit</button>
-    <p id="status">Status: Not connected</p>
-    <input type="file" id="hexFile" accept=".hex">
-    <button id="uploadBtn" disabled>Upload HEX File</button>
+    <div class="container">
+        <h1>Micro:bit WebSerial Interface</h1>
+        
+        <button id="connectBtn">Connect to Micro:bit</button>
+        <input type="file" id="hexFile" accept=".hex" disabled>
+        <button id="uploadBtn" disabled>Upload HEX File</button>
 
-    
+        <p id="status">Status: Not connected</p>
+    </div>
 
-    <script >
+    <script>
         let port;
-let writer;
+        let writer;
 
-document.getElementById('connectBtn').addEventListener('click', async () => {
-    try {
-        // Request a port and open a connection
-        port = await navigator.serial.requestPort();
-        await port.open({ baudRate: 115200 });
-        document.getElementById('status').innerText = "Status: Connected to Micro:bit";
+        document.getElementById('connectBtn').addEventListener('click', async () => {
+            try {
+                // Request a port and open a connection
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 115200 });
+                document.getElementById('status').innerText = "Status: Connected to Micro:bit";
 
-        // Create a writer to send data to the micro:bit
-        const encoder = new TextEncoderStream();
-        encoder.readable.pipeTo(port.writable);
-        writer = encoder.writable.getWriter();
+                // Create a writer to send data to the micro:bit
+                const encoder = new TextEncoderStream();
+                encoder.readable.pipeTo(port.writable);
+                writer = encoder.writable.getWriter();
 
-        // Enable the upload button once connected
-        document.getElementById('uploadBtn').disabled = false;
-    } catch (error) {
-        console.error('There was an error connecting to the micro:bit:', error);
-        document.getElementById('status').innerText = "Status: Connection failed";
-    }
-});
+                // Enable the file input and upload button once connected
+                document.getElementById('hexFile').disabled = false;
+                document.getElementById('uploadBtn').disabled = false;
+            } catch (error) {
+                console.error('There was an error connecting to the micro:bit:', error);
+                document.getElementById('status').innerText = "Status: Connection failed";
+            }
+        });
 
-document.getElementById('uploadBtn').addEventListener('click', async () => {
-    const fileInput = document.getElementById('hexFile');
-    if (!fileInput.files.length) {
-        alert('Please select a hex file first');
-        return;
-    }
+        document.getElementById('uploadBtn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('hexFile');
+            if (!fileInput.files.length) {
+                alert('Please select a hex file first');
+                return;
+            }
 
-    const file = fileInput.files[0];
-    const reader = new FileReader();
+            const file = fileInput.files[0];
+            const reader = new FileReader();
 
-    reader.onload = async (event) => {
-        const hexData = event.target.result;
+            reader.onload = async (event) => {
+                const hexData = event.target.result;
 
-        try {
-            // Write the hex data to the micro:bit
-            await writer.write(hexData);
-            document.getElementById('status').innerText = "Status: Program uploaded successfully";
-        } catch (error) {
-            console.error('There was an error uploading the program to the micro:bit:', error);
-            document.getElementById('status').innerText = "Status: Upload failed";
-        }
-    };
+                try {
+                    // Write the hex data to the micro:bit
+                    await writer.write(hexData);
+                    document.getElementById('status').innerText = "Status: Program uploaded successfully";
+                } catch (error) {
+                    console.error('There was an error uploading the program to the micro:bit:', error);
+                    document.getElementById('status').innerText = "Status: Upload failed";
+                }
+            };
 
-    reader.readAsText(file);
-});
-
+            reader.readAsText(file);
+        });
     </script>
 </body>
 </html>
