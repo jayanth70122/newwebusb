@@ -71,10 +71,19 @@
 
         document.getElementById('connectBtn').addEventListener('click', async () => {
             try {
-                // Request a port without filters to check if the connection works
-                port = await navigator.serial.requestPort();
+                console.log("Requesting port...");
+                // Request a port and filter to show only micro:bit devices
+                port = await navigator.serial.requestPort({
+                    filters: [
+                        { usbVendorId: 0x0D28, usbProductId: 0x0204 }
+                    ]
+                });
+                console.log("Port selected:", port);
+
                 await port.open({ baudRate: 115200 });
                 document.getElementById('status').innerText = "Status: Connected to Micro:bit";
+
+                console.log("Port opened successfully");
 
                 // Create a writer to send data to the micro:bit
                 const encoder = new TextEncoderStream();
@@ -102,11 +111,13 @@
 
             reader.onload = async (event) => {
                 const hexData = event.target.result;
+                console.log("Hex file content loaded");
 
                 try {
-                    // Write the hex data to the micro:bit
+                    console.log("Uploading data to micro:bit...");
                     await writer.write(hexData);
                     document.getElementById('status').innerText = "Status: Program uploaded successfully";
+                    console.log("Upload complete");
                 } catch (error) {
                     console.error('There was an error uploading the program to the micro:bit:', error);
                     document.getElementById('status').innerText = "Status: Upload failed";
